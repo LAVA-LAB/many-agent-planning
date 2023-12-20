@@ -44,16 +44,16 @@ The `run_experiments.py` file can be started with a few parameters, see experime
 See the `--help` output of `episode_runner.py` to run specific instances. It's copied below for convenience.
 
 ```
-usage: episode_runner.py [-h] [--random] [--joint] [--num_agents NUM_AGENTS] [--horizon HORIZON] [--action_coordination {ve,mp}] [--num_episodes NUM_EPISODES] [--num_sims NUM_SIMS] [--max_time MAX_TIME] [--exploration_const EXPLORATION_CONST]
-                         [--discount DISCOUNT] [--no_particles] [--num_particles NUM_PARTICLES] [--max_depth MAX_DEPTH] [--dont_reuse_trees] [--mmdp] [--progressive_widening] [--likelihood_sampling] [--weighted_particle_filtering] [--factored_statistics]
-                         [--spanning_tree] [--factored_pf] [--pomcpow] [--pomcpow_global] [--pft] [--use_sim_particles] [--smosh_errors] [--rand_errors] [--save] [--multithreaded [PERIOD]] [--seed SEED] [--id ID] [--store_results] [--render]
-                         env [experiment_names [experiment_names ...]]
+usage: episode_runner.py [-h] [--random] [--joint] [--num_agents NUM_AGENTS] [--horizon HORIZON] [--action_coordination {ve,mp}] [--num_episodes NUM_EPISODES] [--num_sims NUM_SIMS] [--max_time MAX_TIME] [--exploration_const EXPLORATION_CONST] [--discount DISCOUNT] [--no_particles]
+                         [--num_particles NUM_PARTICLES] [--max_depth MAX_DEPTH] [--dont_reuse_trees] [--mmdp] [--progressive_widening] [--likelihood_sampling] [--weighted_particle_filtering] [--factored_statistics] [--pft] [--use_sim_particles] [--smosh_errors] [--rand_errors] [--save]
+                         [--multithreaded [PERIOD]] [--seed SEED] [--id ID] [--store_results] [--render]
+                         env [experiment_names ...]
 
 positional arguments:
   env
   experiment_names      (Optional) give the function identifier of any experiment to run that is available in this file. E.g. `run_vanilla_pomcp`.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --random              Use random policy, e.g. for baseline result.
   --joint               Run experiment using joint action and observation space, as in vanilla POMCP/Sparse-PFT.
@@ -85,12 +85,6 @@ optional arguments:
                         Use weighted particle filtering, assumes and requires an explicit observation model.
   --factored_statistics, --fs
                         Factored statistics / value version of the algorithm. Use with --joint only.
-  --spanning_tree, --mst, --st
-                        Compute the maximum spanning tree from the Coordination Graph before action selection.
-  --factored_pf, --fpf  Use factored particle filtering method.
-  --pomcpow, --pow      Use the POMCPOW simulate function.
-  --pomcpow_global, --pow_global
-                        Use the global POMCPOW simulate function.
   --pft                 Use the (factored-trees) Particle Filter Tree algorithm.
   --use_sim_particles   Merge the updated belief and simulation particles.
   --smosh_errors        Ignore exceptions during multithreading and keep executing the remaining episodes.
