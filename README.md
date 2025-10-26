@@ -25,7 +25,6 @@ If installing the exact versions specified in the requirements does not work, pl
 All experiments can be run with the convenience script.
 
 ```
-bash setup.bash
 bash run_exp.bash
 ```
 
