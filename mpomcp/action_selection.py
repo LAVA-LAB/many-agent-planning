@@ -25,7 +25,7 @@ def get_utility_value(actions : list[int], edge_qs : dict[int, np.ndarray], grap
         q_sum += edge_q
     return q_sum
 
-def max_plus_final(graph : CoordinationGraph, max_iterations : int, roots : list[VNode], action_size_f, exploration_const, agent_ordering : list[int] = None, use_pucb = True, random_tie_break = True, using_NN = False):
+def max_plus_final(graph : CoordinationGraph, max_iterations : int, roots : list[VNode], action_size_f, exploration_const, agent_ordering : list[int] = None, use_ucb = True, random_tie_break = True, using_NN = False):
     actions_per_agent = action_size_f(0) # TODO: this assumes homogeneity..
 
     messages_fwd = np.zeros((graph.num_edges, actions_per_agent))
@@ -99,7 +99,7 @@ def max_plus_final(graph : CoordinationGraph, max_iterations : int, roots : list
             break
 
     # if edge exploration -> do single round of messagepassing WITH exploration bonus (UCB).
-    if use_pucb:
+    if use_ucb:
         messages_fwd, messages_bwd, fwd_norm, bwd_norm = message_passing(messages_fwd, messages_bwd, action_size_f, edge_qs, exploration_const, do_edge_explore=True, do_node_explore=False)
 
     best_action = np.zeros(graph.num_agents)
@@ -209,7 +209,7 @@ def compute_optimal_local_actions(graph, messages, random_tie_break):
         local_actions[agent_id] = np.random.choice(np.where(g == max_g)[0]) if random_tie_break else np.argmax(g)
     return local_actions
 
-def max_plus_ucb_final(graph : CoordinationGraph, max_iterations : int, edge_qs : dict[int, np.ndarray], edge_qs_ucb : dict[int, np.ndarray], action_size_f, agent_ordering:list[int]=None, use_pucb=True, debug=False, random_tie_break=True, jit=False) -> list[int]:
+def max_plus_ucb_final(graph : CoordinationGraph, max_iterations : int, edge_qs : dict[int, np.ndarray], edge_qs_ucb : dict[int, np.ndarray], action_size_f, agent_ordering:list[int]=None, use_ucb=True, debug=False, random_tie_break=True, jit=False) -> list[int]:
     """
     Centralised/Iterative Max Plus algorithm for action selection using message passing. This version requires both an edge_q dictionary with and without exploration bonus as arguments. 
 
@@ -227,7 +227,7 @@ def max_plus_ucb_final(graph : CoordinationGraph, max_iterations : int, edge_qs 
         _description_, by default False
     iterations : _type_, optional
         _description_, by default None
-    use_pucb : bool, optional
+    use_ucb : bool, optional
         _description_, by default True
     debug : bool, optional
         _description_, by default False
@@ -257,11 +257,11 @@ def max_plus_ucb_final(graph : CoordinationGraph, max_iterations : int, edge_qs 
         
     for iters in range(max_iterations):
         # FORWARD pass
-        messages, norm = message_passing(messages, graph, edge_qs_ucb if use_pucb else edge_qs, agent_ordering=reversed(agent_order) if (iters % 2 == 1) else agent_order) # do reverse pass on odd (second) iterations.
+        messages, norm = message_passing(messages, graph, edge_qs_ucb if use_ucb else edge_qs, agent_ordering=reversed(agent_order) if (iters % 2 == 1) else agent_order) # do reverse pass on odd (second) iterations.
     
         # Anytime extension.
         actions = compute_optimal_local_actions(graph, messages, random_tie_break)
-        val = get_utility_value(actions, edge_qs_ucb if use_pucb else edge_qs, graph)
+        val = get_utility_value(actions, edge_qs_ucb if use_ucb else edge_qs, graph)
         if val > total_utility:
             total_utility = val
             best_actions = actions

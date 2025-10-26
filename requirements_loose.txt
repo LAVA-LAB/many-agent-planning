@@ -1,0 +1,11 @@
+ipython
+numpy
+numba
+scipy
+pandas
+gym
+tqdm
+profilehooks
+seaborn
+matplotlib
+

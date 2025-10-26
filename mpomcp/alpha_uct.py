@@ -354,7 +354,7 @@ class ALPHA_POUCT:
         # For the best action we actually need to do a final run of action selection (maxplus or other).
         if self.FACTORED_TREES or self.FACTORED_STATISTICS:
             # Final action selection should not incorporate exploration bonus.
-            best_action = self.select_action(trees, use_pucb=False)
+            best_action = self.select_action(trees, use_ucb=False)
         else:
             # If only one tree and no factored statistics, we're running joint so just use argmax.
             best_action = trees[0].argmax()
@@ -402,7 +402,7 @@ class ALPHA_POUCT:
                 # roots[i].belief = belief
                 # roots[i].rho = rho
 
-        joint_action = self.select_action(roots, use_pucb=True, progressive_widening=self.DPW)
+        joint_action = self.select_action(roots, use_ucb=True, progressive_widening=self.DPW)
         factored_joint_action = self.check_and_fix_factored_actions(joint_action)
     
         if self.FACTORED_STATISTICS:
@@ -481,7 +481,7 @@ class ALPHA_POUCT:
                     roots[i] = self._construct_VNode(self._factors[i])
                 self._expand_VNode(roots[i], prior=None, value=self._value_init)
 
-        joint_action = self.select_action(roots, use_pucb=True, progressive_widening=True)
+        joint_action = self.select_action(roots, use_ucb=True, progressive_widening=True)
         next_state, new_observations, reward, nsteps = self.G(state, joint_action)
         terminal_state = nsteps == 0
         factored_joint_action = self.check_and_fix_factored_actions(joint_action)
@@ -561,7 +561,7 @@ class ALPHA_POUCT:
         if any(rollout):
             return self._ROLLOUT(state, depth, actions if depth > 0 else None)
 
-        joint_action = self.select_action(roots, use_pucb=True)
+        joint_action = self.select_action(roots, use_ucb=True)
         next_state, new_observations, reward, nsteps = self.G(state, joint_action)
 
         terminal_state = nsteps == 0
@@ -669,17 +669,17 @@ class ALPHA_POUCT:
     """
     Find the Q-values for the edges from the root-nodes in the tree when using factored value estimation.
     """
-    def roots_to_edge_qs(self, roots : list[VNode], use_pucb=False, progressive_widening=False):
+    def roots_to_edge_qs(self, roots : list[VNode], use_ucb=False, progressive_widening=False):
         def edge_Qs(roottree : VNode, a1 : int, a2 : int):
             as1, as2 = self.action_size(a1), self.action_size(a2)
-            # Vanilla value or PUCB value
+            # Vanilla value or ucb value
             restrict_widening = False
             if progressive_widening:
                 counts = np.fromiter(map(lambda x : x.num_visits, roottree.children.values()), dtype=int, count=as1*as2)
                 num_children = counts[counts > 0].size
                 if not (num_children <= self.k_a * (roottree.num_visits ** self.a_a)):
                     restrict_widening = True # no widening
-            if use_pucb:
+            if use_ucb:
                 get_value_f = lambda x : -1e3 if restrict_widening else opt_UCB(x.value, roottree.num_visits, x.num_visits, self.c) 
             else:
                 get_value_f = lambda x : -1e3 if restrict_widening else x.value
@@ -735,9 +735,9 @@ class ALPHA_POUCT:
     Max-Plus. Requires both UCB1 and 'vanilla' Q-values.
     """
     def max_plus(self, roots : list[VNode], **kwargs):
-        edge_Q, edge_Q_UCB = self.roots_to_edge_qs(roots, use_pucb=False), self.roots_to_edge_qs(roots, use_pucb=True)
+        edge_Q, edge_Q_UCB = self.roots_to_edge_qs(roots, use_ucb=False), self.roots_to_edge_qs(roots, use_ucb=True)
         graph = self.graph
-        return max_plus_ucb_final(graph, self.max_plus_iterations, edge_Q, edge_Q_UCB, self.action_size, agent_ordering=self.elimination_tree.agentorder, use_pucb=kwargs['use_pucb'])
+        return max_plus_ucb_final(graph, self.max_plus_iterations, edge_Q, edge_Q_UCB, self.action_size, agent_ordering=self.elimination_tree.agentorder, use_ucb=kwargs['use_ucb'])
 
     def _ucb_ma_naive(self, roots : list[VNode]):
         """
@@ -745,9 +745,29 @@ class ALPHA_POUCT:
         """
         best_action = [None for _ in range(self.num_trees)]
         for i in range(self.num_trees):
-            best_action[i] = self._ucb_AZ(roots[i])
+            best_action[i] = self._ucb(roots[i])
         assert None not in best_action
         return best_action
+
+    def _ucb(self, root : VNode):
+        """
+        UCB (upper confidence bound) action selection function for a single tree.
+        """
+        best_action = []
+        best_value = float('-inf')
+        for action, qnode in root.children.items():
+            if qnode.num_visits == 0:
+                value = float('inf')
+            else:
+                value = self.UCB(root, qnode)
+            if value > best_value:
+                best_action = [action]
+                best_value = value
+            elif math.isclose(value, best_value):
+                best_action.append(action)
+        # Random tiebreaks
+        return best_action[0] if len(best_action) == 1 else random.choice(best_action)
+
 
     """
     Helper method to update PFT search trees and beliefs.

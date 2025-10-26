@@ -1,6 +1,6 @@
-# Factored Online Planning in Many-Agent POMDPs
+# Factored Online Planning in Many-Agent POMDPs (AAAI24 Main Track)
 
-All code was ran on an Ubuntu 22.04.3 LTS machine with Python version 3.10.12. The exact requirements with versions can be found in `requirements.txt`.
+All code was ran on an Ubuntu 22.04.3 LTS machine with Python version 3.10.12. The exact requirements with versions can be found in `requirements.txt`. The package dependencies withour explicit versions are in `requirements_loose.txt`, to be used with other (untested) Python3 versions.
 
 ## Acknowledgements
 
@@ -9,17 +9,23 @@ All code was ran on an Ubuntu 22.04.3 LTS machine with Python version 3.10.12. T
 
 ## Requirements
 
-Install basic requirements via `pip install -r requirements.py`
+Install basic requirements via `pip install -r requirements.py`.  Ensure `Python3` and the `venv` and `pip` modules are installed, which typically can be installed together with how you have decided to install `python3`.
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -U pip setuptools wheel
+python3 -m pip install -r requirements.txt
+```
+
+If installing the exact versions specified in the requirements does not work, please try installing the dependencies without the specific versions (as found in `requirements_loose.txt`). There is a decent chance the code will still work. For instance, we have been able to run the code with Python3 3.12.10 as well.
 
 ## Running the code
 
-Below is an example of how all experiments can be run with the convenience script.
+All experiments can be run with the convenience script.
 
 ```
-python3 venv .venv
-source .venv/bin/activate
-python3 -m pip install -U pip setuptools wheel
-python3 -m pip install -r requirements.py
+bash setup.bash
 bash run_exp.bash
 ```
 
@@ -54,46 +60,60 @@ positional arguments:
   experiment_names      (Optional) give the function identifier of any experiment to run that is available in this file. E.g. `run_vanilla_pomcp`.
 
 options:
-  -h, --help            show this help message and exit
-  --random              Use random policy, e.g. for baseline result.
-  --joint               Run experiment using joint action and observation space, as in vanilla POMCP/Sparse-PFT.
+  -h, --help
+  show this help message and exit
+  --random
+  Use random policy, e.g. for baseline result.
+  --joint
+  Run experiment using joint action and observation space, as in vanilla POMCP/Sparse-PFT.
   --num_agents NUM_AGENTS, --n NUM_AGENTS
   --horizon HORIZON, --h HORIZON
   --action_coordination {ve,mp}
+  Denotes the action selection algorithm, variable elimination (VE) or MaxPlus (MP)
   --num_episodes NUM_EPISODES, --episodes NUM_EPISODES
-                        Number of episodes to run.
+  Number of episodes to run.
   --num_sims NUM_SIMS, --sims NUM_SIMS
-                        Maximum number of simulation function calls in the tree search.
+  Maximum number of simulation function calls in the tree search.
   --max_time MAX_TIME, --time MAX_TIME
-                        Maximum time spent in the tree search in seconds.
+  Maximum time spent in the tree search in seconds.
   --exploration_const EXPLORATION_CONST, --c EXPLORATION_CONST
-                        UCB1 exploration constant c.
+  UCB1 exploration constant c.
   --discount DISCOUNT, --gamma DISCOUNT
-                        Discount factor in floats (should meet 0 <= y <= 1).
-  --no_particles        Do not use particle filters. The fallback is to run with POUCT, i.e. with a belief distribution, which might not be implemented for every environment.
+  Discount factor in floats (should meet 0 <= y <= 1).
+  --no_particles
+  Do not use particle filters. The fallback is to run with POUCT, i.e. with an explicit belief distribution, which might not be implemented or feasible for every environment.
   --num_particles NUM_PARTICLES, --np NUM_PARTICLES, --p NUM_PARTICLES
-                        Specify the number of particles in each factored filter or in the joint filter, depending on the algorithm set-up.
+  Specify the number of particles in each factored filter or in the joint filter, depending on the algorithm set-up.
   --max_depth MAX_DEPTH
-                        Maximum depth of the tree.
-  --dont_reuse_trees    Rebuild tree every step in the episode, not making use of previous tree search results.
-  --mmdp                Run in MMDP setting. Meaning: pick the true state of the environment in every simulation call instead of sampling from the belief.
+  Maximum depth of the search tree(s).
+  --dont_reuse_trees
+  Rebuild tree every step in the episode, not making use of previous tree search results.
+  --mmdp
+  Run in MMDP setting. Meaning: pick the true state of the environment in every simulation call instead of sampling from the belief.
   --progressive_widening, --dpw
-                        Add factored progressive widening to the tree search algorithm to increase depth of the search. Might negatively influence results.
+  Add factored progressive widening to the tree search algorithm to increase depth of the search. Might negatively influence results.
   --likelihood_sampling, --ls
-                        Belief Likelihood-based asymmetric sampling.
+  Belief Likelihood-based asymmetric sampling.
   --weighted_particle_filtering, --weighted, --wpf
-                        Use weighted particle filtering, assumes and requires an explicit observation model.
+  Use weighted particle filtering, assumes and requires an explicit observation model.
   --factored_statistics, --fs
-                        Factored statistics / value version of the algorithm. Use with --joint only.
-  --pft                 Use the (factored-trees) Particle Filter Tree algorithm.
-  --use_sim_particles   Merge the updated belief and simulation particles.
-  --smosh_errors        Ignore exceptions during multithreading and keep executing the remaining episodes.
-  --rand_errors         Ignore particle filter exceptions during searching and keep executing the remaining episode with a random policy.
-  --save                Save intermediate results to disk for debugging. Might not work when running multithreaded.
+  Factored statistics / value version of the algorithm. Use with --joint only.
+  --pft
+  Use the (factored-trees) Particle Filter Tree algorithm.
+  --use_sim_particles
+  Merge the updated belief and simulation particles.
+  --smosh_errors
+  Ignore exceptions during multithreading and keep executing the remaining episodes.
+  --rand_errors
+  Ignore particle filter exceptions during searching and keep executing the remaining episode with a random policy.
+  --save
+  Save intermediate results to disk for debugging. Might not work when running multithreaded.
   --multithreaded [PERIOD], --multi [PERIOD]
-                        Run episodes multithreaded, every episode runs in its own process. Maximum number of processes is half the number of CPU threads by default but can be supplied.
+  Run episodes multithreaded, every episode runs in its own process. Maximum number of processes is half the number of CPU threads by default but can be supplied.
   --seed SEED, --s SEED
-  --id ID               Experiment identifier, determines which directory the results are stored to.
-  --store_results       Store the benchmark results in a CSV.
+  --id ID
+  Experiment identifier, determines which directory the results are stored to.
+  --store_results
+  Store the benchmark results in a CSV.
   --render
 ```

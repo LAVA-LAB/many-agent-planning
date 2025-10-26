@@ -343,7 +343,7 @@ def build_args():
     args.add_argument('--joint', action="store_true", default=False, help="Run experiment using joint action and observation space, as in vanilla POMCP/Sparse-PFT.")
     args.add_argument('--num_agents', '--n', default=4, type=int)
     args.add_argument('--horizon', '--h', default=10, type=int)
-    args.add_argument('--action_coordination', choices=['ve', 'mp'], default='ve', type=str)
+    args.add_argument('--action_coordination', choices=['ve', 'mp'], default='ve', type=str, help="Denotes the action selection algorithm, variable elimination (VE) or MaxPlus (MP)")
     args.add_argument('--num_episodes', '--episodes', default=10, type=int, help="Number of episodes to run.")
     args.add_argument('--num_sims', '--sims', default=100, type=int, help="Maximum number of simulation function calls in the tree search.")
     args.add_argument('--max_time', '--time', default=1, type=float, help="Maximum time spent in the tree search in seconds.")
